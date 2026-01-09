@@ -65,6 +65,38 @@ class UserController {
 
     }
 
+    async DeleteById(req,res){
+        try {
+            const data = await usersService.DeleteById(req.params)
+            res.status(200).json({
+                status:200,
+                message:"All information of User deleted successfully"
+            })
+            
+        } catch (error) {
+            res.status(400).json({
+                status:400,
+                message:error.message
+            })
+        }
+    }
+
+    async PutById(req,res){
+        try {
+            const data = await usersService.PutById(req.params,req.body,req.files)
+            res.status(200).json({
+                status:200,
+                message:"User updaeted successfully"
+            })
+        } catch (error) {
+            res.status(400).json({
+                status:400,
+                message:error.message
+            })
+            console.log(error)
+        }
+    }
+
 }
 
 export default new UserController()

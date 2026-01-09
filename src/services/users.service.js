@@ -3,6 +3,7 @@ import {join,extname} from "path"
 import JWT from "jsonwebtoken"
 import { config } from "dotenv";
 import bcrypt from "bcrypt"
+import fs from "fs"
 config()
 
 class UserService {
@@ -65,6 +66,63 @@ class UserService {
         return data.rows
     }
 
+    async DeleteById(params){
+        const {id} = params
+
+        const FoundUser = await pool.query("select * from users where id = $1",[id])
+        if(FoundUser.rows.length === 0){
+            const error = new Error("User not found")
+            error.statusCode = 404
+            throw error
+        }
+
+        await pool.query("Delete from users where id = $1",[id])
+
+    }
+
+    async PutById(params,body,files){
+        const {id} = params
+        const file = files?.file
+        
+        const FoundUser = await pool.query("select * from users where id = $1",[id])
+        if(FoundUser.rows.length === 0){
+            const error = new Error("User not found")
+            error.statusCode = 404
+            throw error
+        }
+        
+        let newUsername = body?.username ?? FoundUser.rows[0].username
+
+        let newPassword = FoundUser.rows[0].password
+        if(body?.password){
+            console.log("Error boyayam if ishladiku blaaa")
+           newPassword = await bcrypt.hash(body.password,10)
+        }
+        
+        let newavatar = FoundUser.rows[0].avatar
+        if(file){
+            const filename = Date.now() + extname(file.name)
+            const path = join(process.cwd(),"src","uploads",filename)
+
+            await file.mv(path)
+
+            const DeletedFilepath = join(process.cwd(),"src","uploads",FoundUser.rows[0].avatar)
+    
+            fs.unlink(DeletedFilepath, (err) => {
+                if(err){
+                    return {
+                        delete_status:409,
+                        delete_message:"something went wrong during delete img"
+                    }
+                }
+            })
+
+            newavatar = filename
+        }
+        await pool.query("Update users set id=$1,username=$2,password=$3,avatar=$4 where id = $5",
+            [id,newUsername,newPassword,newavatar,id]
+        )
+    }
 }
 
 export default new UserService()
