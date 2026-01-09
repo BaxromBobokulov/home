@@ -8,5 +8,7 @@ UserRouter.post("/api/register",validion.register,usersController.Register)
 UserRouter.post("/api/login",validion.login,usersController.Login)
 UserRouter.get("/api/getimg/:filename",validion.getImg,usersController.toGetImg)
 UserRouter.get("/api/users",usersController.GettAll)
+UserRouter.delete("/api/delete/:id",usersController.DeleteById)
+UserRouter.put("/api/update/:id",usersController.PutById)
 
 export default UserRouter
