@@ -3,9 +3,8 @@ import usersService from "../services/users.service.js";
 class UserController {
     constructor() {}
 
-    async Register(req,res){
+    async Register(req,res,next){
         try {
-            // console.log(req.body,req.files)
             const data = await usersService.Register(req.body,req.files)
             res.status(200).json({
                 status:200,
@@ -13,43 +12,35 @@ class UserController {
             })
             
         } catch (error) {
-            res.status(409).json({
-                status:409,
-                message:error.message
-            })
+            next(error)
         }
     }
 
-    async Login(req,res){
+    async Login(req,res,next){
         try {
             const data = await usersService.Login(req.body,req.files)
             res.status(200).json({
                 status:200,
                 message:"Login susseccfully",
-                token:data.accessToken || "token not exists"
+                accesstoken:data.accessToken ?? "token not exists",
+                refreshtoken:data.refreshToken ?? "token not exists"
             })
             
         } catch (error) {
-            res.status(409).json({
-                status:409,
-                message:error.message
-            })
+            next(error)
         }
     }
 
-    async toGetImg(req,res){
+    async toGetImg(req,res,next){
         try {
             const data = await usersService.ToGetImage(req.params)
             res.sendFile(data)
         } catch (error) {
-            res.status(400).json({
-                status:400,
-                message:error.message
-            })
+            next(error)
         }
     }
 
-    async GettAll(req,res) {
+    async GettAll(req,res,next) {
         try {
             const data = await usersService.GetAll()
             res.status(200).json({
@@ -57,15 +48,12 @@ class UserController {
                 data:data
             })
         } catch (error) {
-            res.status(400).json({
-                status:400,
-                message:error.message
-            })
+            next(error)
         }
 
     }
 
-    async DeleteById(req,res){
+    async DeleteById(req,res,next){
         try {
             const data = await usersService.DeleteById(req.params)
             res.status(200).json({
@@ -74,14 +62,11 @@ class UserController {
             })
             
         } catch (error) {
-            res.status(400).json({
-                status:400,
-                message:error.message
-            })
+            next(error)
         }
     }
 
-    async PutById(req,res){
+    async PutById(req,res,next){
         try {
             const data = await usersService.PutById(req.params,req.body,req.files)
             res.status(200).json({
@@ -89,14 +74,9 @@ class UserController {
                 message:"User updaeted successfully"
             })
         } catch (error) {
-            res.status(400).json({
-                status:400,
-                message:error.message
-            })
-            console.log(error)
+            next(error)
         }
     }
-
 }
 
 export default new UserController()

@@ -1,4 +1,5 @@
-import { UserRegisterSchema,UserLoginSchema,UserGetImg } from "../validations/vaidations.js";
+import { BadRequestError } from "../utils/error.js";
+import { UserRegisterSchema,UserLoginSchema,UserUpdateSchema } from "../validations/vaidations.js";
 
 class validation {
     constructor() {}
@@ -7,17 +8,11 @@ class validation {
         try {
             const {error}  = UserRegisterSchema.validate(req.body)
             if(error){
-                return res.status(400).json({
-                    status:400,
-                    message:error.details[0].message,
-                })
+                throw new BadRequestError(400,error.details[0].message)
             }
             next()
         } catch (error) {
-            return res.status(400).json({
-                status:400,
-                message:error.message
-            })
+            next(error)
         }
     }
 
@@ -25,35 +20,23 @@ class validation {
         try {
             const {error}  = UserLoginSchema.validate(req.body)
             if(error){
-                return res.status(400).json({
-                    status:400,
-                    message:error.details[0].message,
-                })
+                throw new BadRequestError(400,error.details[0].message)
             }
             next()
         } catch (error) {
-            return res.status(400).json({
-                status:400,
-                message:error.message
-            })
+            next(error)
         }
     }
 
-    getImg = (req,res,next) => {
+    UserUpdate = (req,res,next) => {
         try {
-            const {error}  = UserGetImg.validate(req.params)
+            const {error}  = UserUpdateSchema.validate(req.body)
             if(error){
-                return res.status(400).json({
-                    status:400,
-                    message:error.details[0].message,
-                })
+              throw new BadRequestError(400,error.details[0].message)
             }
             next()
         } catch (error) {
-            return res.status(400).json({
-                status:400,
-                message:error.message
-            })
+            next(error)
         }
     }
 }
