@@ -4,6 +4,7 @@ import JWT from "jsonwebtoken"
 import { config } from "dotenv";
 import bcrypt from "bcrypt"
 import fs from "fs"
+import { ConflictError, NotFoundError } from "../utils/error.js";
 config()
 
 class UserService {
@@ -14,13 +15,11 @@ class UserService {
         const {file} = files
 
         const filename = Date.now() + extname(file.name)
-        const path = join(process.cwd(),"uploads",filename)
+        const path = join(process.cwd(),"src","uploads",filename)
         
         const existsUsername = await pool.query("Select * from users where username = $1",[username])
         if(existsUsername.rows.length != 0){
-            const error  = new Error("This username already taken")
-            error.statusCode = 409
-            throw error
+            throw new ConflictError(409,"This username already taken")
         }
 
         await file.mv(path)
@@ -34,31 +33,27 @@ class UserService {
         const {username,password} = body
 
         const check = await pool.query("Select * from users where username  = $1",[username])
-        // console.log(check.rows)
         if(check.rows.length === 0){
-            const error  = new Error(" Wrong username please try again")
-            error.statusCode = 409
-            throw error
+            throw new ConflictError(409,"Wrong username please try again")
         }
 
         const CheckPas = bcrypt.compare(password,check.rows[0].password)
         if(!CheckPas){
-            const error  = new Error(" Wrong password please try again")
-            error.statusCode = 409
-            throw error
+            throw new ConflictError(409,"Wrong password please try again")
         }
         let FoundUser = await pool.query("Select * from users where username = $1",[username])
 
         let id = FoundUser.rows[0].id
         let tokenusername = FoundUser.rows[0].username
         return {
-            accessToken:JWT.sign({id,tokenusername},process.env.SECRET)
+            accessToken:JWT.sign({id,tokenusername},process.env.SECRET,{expiresIn:'1m'}),
+            refreshToken:JWT.sign({id,tokenusername},process.env.SECRET,{expiresIn:'1d'})
         }
     }
 
     async ToGetImage(params){
         const {filename} = params
-        return (join(process.cwd(),"uploads",filename))
+        return (join(process.cwd(),"src","uploads",filename))
     }
 
     async GetAll(){
@@ -71,9 +66,7 @@ class UserService {
 
         const FoundUser = await pool.query("select * from users where id = $1",[id])
         if(FoundUser.rows.length === 0){
-            const error = new Error("User not found")
-            error.statusCode = 404
-            throw error
+            throw new NotFoundError(404,"User not found please try again")
         }
 
         await pool.query("Delete from users where id = $1",[id])
@@ -86,16 +79,13 @@ class UserService {
         
         const FoundUser = await pool.query("select * from users where id = $1",[id])
         if(FoundUser.rows.length === 0){
-            const error = new Error("User not found")
-            error.statusCode = 404
-            throw error
+            throw new NotFoundError(404,"User not found please try again")
         }
         
         let newUsername = body?.username ?? FoundUser.rows[0].username
 
         let newPassword = FoundUser.rows[0].password
         if(body?.password){
-            console.log("Error boyayam if ishladiku blaaa")
            newPassword = await bcrypt.hash(body.password,10)
         }
         
@@ -110,10 +100,7 @@ class UserService {
     
             fs.unlink(DeletedFilepath, (err) => {
                 if(err){
-                    return {
-                        delete_status:409,
-                        delete_message:"something went wrong during delete img"
-                    }
+                    throw new ConflictError(409,"something went wrong during delete img")
                 }
             })
 
