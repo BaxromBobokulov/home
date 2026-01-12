@@ -4,6 +4,7 @@ import UserRouter from "./routes/users.route.js"
 import fileUpload from "express-fileupload"
 import fs from "fs"
 import {join} from "path"
+import FilesRouter from "./routes/files.route.js"
 config()
 
 
@@ -13,9 +14,10 @@ server.use(fileUpload())
 
 server.use(express.json())
 server.use(UserRouter)
+server.use(FilesRouter)
 
 server.use((error,req,res,next) => {
-    if(error.status < 500){
+    if(error.status && error.status < 500){
         return res.status(error.status).json({
             status:error.status,
             message:error.message,
@@ -23,7 +25,7 @@ server.use((error,req,res,next) => {
         })
     }else{
         let errorText = `\n[${new Date()}]--${req.method}--${req.url}--${req.message}`
-        fs.writeFileSync(join(process.cwd(),"src","logs","error.txt"),errorText)
+        fs.appendFileSync(join(process.cwd(),"src","logs","error.txt"),errorText)
 
         return res.status(500).json({
             status:500,

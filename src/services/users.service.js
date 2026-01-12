@@ -46,7 +46,7 @@ class UserService {
         let id = FoundUser.rows[0].id
         let tokenusername = FoundUser.rows[0].username
         return {
-            accessToken:JWT.sign({id,tokenusername},process.env.SECRET,{expiresIn:'1m'}),
+            accessToken:JWT.sign({id,tokenusername},process.env.SECRET,{expiresIn:'15m'}),
             refreshToken:JWT.sign({id,tokenusername},process.env.SECRET,{expiresIn:'1d'})
         }
     }
