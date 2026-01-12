@@ -1,3 +1,4 @@
+
 export class InternalError extends Error{
     constructor(status,message) {
         super()
@@ -34,14 +35,14 @@ export class ConflictError extends Error{
     }
 }
 
-// export class InternalError {
-//     constructor(status,message) {
-//         super()
-//         this.status = status
-//         this.message = message
-//         this.name = "InternalError"
-//     }
-// }
+export class UnauthorizedError extends Error{
+    constructor(status,message) {
+        super()
+        this.status = status
+        this.message = message
+        this.name = "UnauthorizedError"
+    }
+}
 
 // export class InternalError {
 //     constructor(status,message) {
